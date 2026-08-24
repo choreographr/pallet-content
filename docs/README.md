@@ -15,7 +15,7 @@ integrators.
 
 ## Dependency Pinning
 
-This project uses `polkadot-sdk` from git tag `polkadot-stable2512-3`.
+This project uses `polkadot-sdk` from git tag `polkadot-stable2606-1`.
 
 - Keep FRAME/Substrate dependencies on the same git source/tag across runtime
   crates.

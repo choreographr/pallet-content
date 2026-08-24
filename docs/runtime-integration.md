@@ -9,7 +9,7 @@ In your runtime `Cargo.toml`:
 ```toml
 [dependencies]
 pallet-content = { version = "0.1.0", default-features = false }
-polkadot-sdk = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2512-3", default-features = false }
+polkadot-sdk = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2606-1", default-features = false }
 ```
 
 And enable relevant runtime features (`std` for host tests/dev, otherwise keep
