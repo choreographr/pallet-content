@@ -551,3 +551,93 @@ fn reject_revision_id_overflow() {
         );
     });
 }
+
+#[test]
+fn publish_item_with_parents_and_links() {
+    let item_id = expected_item_id(1, Nonce::default());
+    new_test_ext().execute_with(|| {
+        let parents: BoundedVec<ItemId, <Test as crate::Config>::MaxParents> =
+            vec![ItemId([1; 32]), ItemId([2; 32])]
+                .try_into()
+                .expect("parents fit in bounds");
+        let links: BoundedVec<ItemId, <Test as crate::Config>::MaxLinks> =
+            vec![ItemId([3; 32]), ItemId([4; 32])]
+                .try_into()
+                .expect("links fit in bounds");
+
+        assert_ok!(Content::<Test>::publish_item(
+            RuntimeOrigin::signed(1),
+            Nonce::default(),
+            parents.clone(),
+            REVISIONABLE | RETRACTABLE,
+            links.clone(),
+            Default::default(),
+            IpfsHash::default(),
+        ));
+
+        // The populated `parents` must be emitted on `PublishItem`.
+        System::assert_has_event(
+            Event::<Test>::PublishItem {
+                item_id: item_id.clone(),
+                owner: 1,
+                parents: parents.clone(),
+                flags: REVISIONABLE | RETRACTABLE,
+            }
+            .into(),
+        );
+
+        // The populated `links` must be emitted on the initial `PublishRevision`.
+        System::assert_has_event(
+            Event::<Test>::PublishRevision {
+                item_id: item_id.clone(),
+                owner: 1,
+                revision_id: 0,
+                links: links.clone(),
+                mentions: Default::default(),
+                ipfs_hash: IpfsHash::default(),
+            }
+            .into(),
+        );
+    });
+}
+
+#[test]
+fn publish_revision_with_links() {
+    let item_id = expected_item_id(1, Nonce::default());
+    new_test_ext().execute_with(|| {
+        assert_ok!(Content::<Test>::publish_item(
+            RuntimeOrigin::signed(1),
+            Nonce::default(),
+            Default::default(),
+            REVISIONABLE,
+            Default::default(),
+            Default::default(),
+            IpfsHash::default(),
+        ));
+
+        let links: BoundedVec<ItemId, <Test as crate::Config>::MaxLinks> =
+            vec![ItemId([5; 32]), ItemId([6; 32])]
+                .try_into()
+                .expect("links fit in bounds");
+
+        assert_ok!(Content::<Test>::publish_revision(
+            RuntimeOrigin::signed(1),
+            item_id.clone(),
+            links.clone(),
+            Default::default(),
+            IpfsHash::default(),
+        ));
+
+        System::assert_has_event(
+            Event::<Test>::PublishRevision {
+                item_id: item_id.clone(),
+                owner: 1,
+                revision_id: 1,
+                links: links.clone(),
+                mentions: Default::default(),
+                ipfs_hash: IpfsHash::default(),
+            }
+            .into(),
+        );
+    });
+}
