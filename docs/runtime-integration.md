@@ -9,14 +9,16 @@ In your runtime `Cargo.toml`:
 ```toml
 [dependencies]
 pallet-content = { version = "0.1.0", default-features = false }
-polkadot-sdk = { git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2606-1", default-features = false }
+polkadot-sdk = { version = "2609.0.0", default-features = false }
 ```
 
 And enable relevant runtime features (`std` for host tests/dev, otherwise keep
 `default-features = false`).
 
-Use the same `polkadot-sdk` git source/tag across your runtime crates to avoid
-mixing registry and git-sourced FRAME dependencies.
+Use the same `polkadot-sdk` version across your runtime crates to avoid mixing
+registry and git-sourced FRAME dependencies. Version 2609.0.0 is published from
+upstream git tag `polkadot-stable2609`; prefer the crates.io crate, and use the
+tag only if you already build FRAME from git.
 
 ## 2. Add pallet to `construct_runtime!`
 
