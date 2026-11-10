@@ -347,3 +347,71 @@ fn add_item_and_remove_item_are_scoped_per_account() {
         assert_eq!(AccountItemIdIndex::<Test>::get(1, item_id_1), 0);
     });
 }
+
+#[test]
+fn weight_info_is_positive_for_all_dispatchables() {
+    use crate::{SubstrateWeight, WeightInfo};
+
+    fn assert_weight_impl<W: WeightInfo>() {
+        // Placeholder weights: assert only that every dispatchable reports a
+        // non-zero weight until runtime benchmarks replace these values.
+        assert!(W::add_item().ref_time() > 0);
+        assert!(W::remove_item().ref_time() > 0);
+    }
+
+    assert_weight_impl::<()>();
+    assert_weight_impl::<SubstrateWeight<Test>>();
+}
+
+#[test]
+fn dispatch_info_and_runtime_dispatch_cover_dispatchables() {
+    use crate::Call;
+    use polkadot_sdk::frame_support::dispatch::GetDispatchInfo;
+    use polkadot_sdk::frame_support::traits::UnfilteredDispatchable;
+
+    new_test_ext().execute_with(|| {
+        let owner = 1;
+        let item_id = publish_item(owner, Nonce::default());
+
+        let add = Call::<Test>::add_item {
+            item_id: item_id.clone(),
+        };
+        assert!(add.get_dispatch_info().call_weight.ref_time() > 0);
+
+        let remove = Call::<Test>::remove_item { item_id };
+        assert!(remove.get_dispatch_info().call_weight.ref_time() > 0);
+
+        // Dispatch through the runtime so the generated `RuntimeCall` glue runs.
+        assert_ok!(
+            RuntimeCall::AccountContent(add).dispatch_bypass_filter(RuntimeOrigin::signed(owner))
+        );
+        assert_ok!(RuntimeCall::AccountContent(remove)
+            .dispatch_bypass_filter(RuntimeOrigin::signed(owner)));
+    });
+}
+
+#[test]
+fn generated_runtime_glue_is_covered() {
+    use polkadot_sdk::frame_support::view_functions::ViewFunctionId;
+    use scale_info::TypeInfo;
+
+    fn touch<T: TypeInfo>() {
+        let _ = T::type_info();
+    }
+
+    touch::<Test>();
+    touch::<RuntimeCall>();
+    touch::<RuntimeEvent>();
+    touch::<RuntimeSlashReason>();
+    touch::<RuntimeLockId>();
+    touch::<RuntimeHoldReason>();
+    touch::<RuntimeFreezeReason>();
+    touch::<RuntimeTask>();
+    touch::<RuntimeViewFunction>();
+
+    let id = ViewFunctionId {
+        prefix: [0u8; 16],
+        suffix: [0u8; 16],
+    };
+    assert!(Test::execute_view_function(id, vec![]).is_err());
+}
