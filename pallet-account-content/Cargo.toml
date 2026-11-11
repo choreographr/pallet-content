@@ -29,10 +29,7 @@ std = [
 	"log/std",
 	"pallet-content/std",
 	"polkadot-sdk/std",
-	"polkadot-sdk/frame-support",
-	"polkadot-sdk/frame-system",
 	"polkadot-sdk/pallet-balances",
-	"polkadot-sdk/sp-io",
 	"scale-info/std",
 ]
 try-runtime = [

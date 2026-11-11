@@ -26,7 +26,17 @@ scale-info = { version = "2.11.6", default-features = false }
 # Single source of truth for the polkadot-sdk umbrella version, sourced from
 # the published crates.io crate (not a git tag) so every crate in the workspace
 # resolves one SDK and no SDK crate is version-pinned per-manifest.
-polkadot-sdk = { version = "2609.2.0", default-features = false }
+#
+# The `features` list enables the umbrella sub-crates the pallet code needs in
+# *every* build, including the `no_std`/Wasm runtime build. These must live here
+# (always on) rather than under the `std` feature, otherwise a
+# `--no-default-features` build has no `frame_support` re-export at all. The
+# `std` feature only adds the `*/std` halves on top.
+polkadot-sdk = { version = "2609.2.0", default-features = false, features = [
+	"frame-support",
+	"frame-system",
+	"sp-io",
+] }
 
 [dependencies]
 codec = { workspace = true }
@@ -43,10 +53,7 @@ std = [
 	"codec/std",
 	"log/std",
 	"polkadot-sdk/std",
-	"polkadot-sdk/frame-support",
-	"polkadot-sdk/frame-system",
 	"polkadot-sdk/pallet-balances",
-	"polkadot-sdk/sp-io",
 	"polkadot-sdk/sp-runtime",
 	"scale-info/std",
 ]
